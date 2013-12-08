@@ -7,12 +7,14 @@ class Visit < Sequel::Model
     def pageviews_for_past_days(days)
       return {} if days < 1
       1.upto(days).inject(Hash.new) do |result, day|
-        from, to = (Date.today-(day-1).days).to_s(:db), (Date.today-day.days).to_s(:db)
-        result[from] = self.db.fetch("select url, count(*) as visits \
+        start_date = Date.today-(day-1).days
+        end_date = start_date+1.day
+
+        result[start_date.to_s(:db)] = self.db.fetch("select url, count(*) as visits \
                                       from ? \
-                                      where created_at <= ? and created_at > ? \
+                                      where created_at >= ? and created_at < ? \
                                       group by url \
-                                      order by visits desc", self.table_name, from, to).to_a
+                                      order by visits desc", self.table_name, start_date, end_date).to_a
         result
       end
     end
@@ -46,11 +48,11 @@ class Visit < Sequel::Model
 
     # Adding non datetime field to records will speed things up alot
     #def faster_pageviews_for_past_days(days)
+    #  to_date = Date.today - days.days
     #  fetch("select url, count(*) as visits, date_created \
     #         from visits \
-    #         where date_created >= (CURDATE() - INTERVAL #{days} DAY) \
-    #         group by url, date_created \
-    #         order by date_created asc, visits asc").to_a
+    #         where date_created >= ? \
+    #         group by url, date_created", to_date).to_a
     #end
 
   end
