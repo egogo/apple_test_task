@@ -1,0 +1,13 @@
+development: &default
+  adapter: mysql2
+  database: apple_test_task_development
+  username: root
+  password:
+
+production:
+  <<: *default
+  database: apple_test_task
+
+test:
+  <<: *default
+  database: apple_test_task_test
